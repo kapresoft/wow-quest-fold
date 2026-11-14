@@ -1,0 +1,20 @@
+package-as: QuestFold
+# --------------------------
+manual-changelog:
+  filename: dev/changelog-release.md
+  markup-type: markdown
+enable-nolib-creation: no
+
+tools-used:
+  - DevSuite
+  - DebugChatFrame
+  - Bugsack
+  - Bug-Grabber
+
+ignore:
+  - "*.md"
+  - "*.yaml"
+  - "*.yml"
+  - "*.toml"
+  - dev
+  - doc

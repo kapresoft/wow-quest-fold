@@ -1,0 +1,37 @@
+## Interface: 120105, 16001
+## Version: @project-version@
+## Title: Quest|cff12E600Fold|r
+
+## Author: @project-author@ (kapresoft)
+## Notes: A lightweight World of Warcraft addon that makes collapsed|nquest log headers sticky.|n|cff1784d1Released under the MIT License, provided 'as is'|nwithout any warranties.|r
+
+## IconTexture: Interface/AddOns/QuestFold/Assets/QuestFold-Logo
+## DefaultState: enabled
+
+## Category-enUS: Quests
+## Category-deDE: Quests
+## Category-esES: Misiones
+## Category-esMX: Misiones
+## Category-frFR: Quêtes
+## Category-itIT: Missioni
+## Category-koKR: 퀘스트
+## Category-ptBR: Missões
+## Category-ruRU: Задания
+## Category-zhCN: 任务
+## Category-zhTW: 任務
+
+## X-Github-Repo: https://github.com/kapresoft/wow-quest-fold
+## X-Github-Issues: https://github.com/kapresoft/wow-quest-fold/issues
+## X-CurseForge: https://www.curseforge.com/wow/addons/questfold
+## X-Curse-Project-ID: 1803721
+## X-Github-Project-Author: @project-author@
+## X-Github-Project-Hash: @project-hash@
+## X-Github-Project-Last-Changed-Date: @project-date-iso@
+## X-Github-Project-Version: @project-version@
+
+## X-WoWI-ID: -1
+
+## X-PayPal-Donation-ID: AX58YP3GSGXVU
+## X-PayPal-Donation-URL: https://www.paypal.com/donate/?hosted_button_id=AX58YP3GSGXVU
+
+QuestFold.lua
