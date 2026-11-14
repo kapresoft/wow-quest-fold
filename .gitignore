@@ -46,6 +46,8 @@ luac.out
 /.vscode/
 /.claude/
 
+ThirdParty/Libs
+
 # ignore
 /.release/
 .emmyrc.json

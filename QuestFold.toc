@@ -3,7 +3,7 @@
 ## Title: Quest|cff12E600Fold|r
 
 ## Author: @project-author@ (kapresoft)
-## Notes: A lightweight World of Warcraft addon that makes collapsed|nquest log headers sticky.|n|cff1784d1Released under the MIT License, provided 'as is'|nwithout any warranties.|r
+## Notes: A lightweight World of Warcraft addon that makes the collapsed state of objective tracker headers sticky.|n|cff1784d1Released under the MIT License, provided 'as is'|nwithout any warranties.|r
 
 ## IconTexture: Interface/AddOns/QuestFold/Assets/QuestFold-Logo
 ## DefaultState: enabled
@@ -35,4 +35,5 @@
 ## X-PayPal-Donation-ID: AX58YP3GSGXVU
 ## X-PayPal-Donation-URL: https://www.paypal.com/donate/?hosted_button_id=AX58YP3GSGXVU
 
+ThirdParty\ThirdParty.xml
 QuestFold.lua

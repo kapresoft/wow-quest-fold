@@ -1,94 +1,136 @@
---- @type string
-local addonName = ...
+local AceDB = LibStub('AceDB-3.0')
 
---- @class QuestFold_DB
+--- @class QuestFold_GlobalDB
 --- @field collapsed table<string, boolean> @Keyed by tracker frame name
 
---- @class QuestFold_Tracker : Frame
---- @field Header Frame
---- @field IsCollapsed fun(self: QuestFold_Tracker): boolean
---- @field SetCollapsed fun(self: QuestFold_Tracker, collapsed: boolean)
+--- @class QuestFold_DB
+--- @field global QuestFold_GlobalDB @Account-wide
 
 --- Matches the TOC SavedVariables definition
 local DB_NAME = 'QUEST_FOLD_DB'
+
+--- @type QuestFold_DB
+local DB_DEFAULTS = { ['global'] = { collapsed = {} } }
+
+--- Clipping needs a rect, so a hidden module keeps this much
+local HIDDEN_HEIGHT = 1
+
+--- Contents rect kept under a folded header, for clipping
+local CLIP_HEIGHT = 1
 
 --- @type QuestFold_DB
 local db
 
 local eventFrame = CreateFrame('Frame')
 
+--- Fold state on screen; ForceExpand changes it unsaved
 --- @type table<QuestFold_Tracker, boolean>
-local hookedTrackers = {}
-
---- @type table<QuestFold_Tracker, boolean>
-local pendingRestores = {}
+local folded = {}
 
 local function InitDB()
-  _G[DB_NAME] = _G[DB_NAME] or {}
-  db = _G[DB_NAME]
-  db.collapsed = db.collapsed or {}
+  db = AceDB:New(DB_NAME, DB_DEFAULTS)
 end
 
---- @param tracker QuestFold_Tracker
-local function SaveState(tracker)
-  db.collapsed[tracker:GetName()] = tracker:IsCollapsed()
+--- @param frame Frame
+--- @return boolean
+local function IsLocked(frame)
+  return InCombatLockdown() and frame:IsProtected()
 end
 
---- @param tracker QuestFold_Tracker
-local function DeferRestore(tracker)
-  pendingRestores[tracker] = true
+local function ApplyAfterCombat()
   eventFrame:RegisterEvent('PLAYER_REGEN_ENABLED')
 end
 
---- @param tracker QuestFold_Tracker
-local function RestoreState(tracker)
-  if not db.collapsed[tracker:GetName()] then return end
-  -- Tainted tracker updates can block secure item buttons
-  if InCombatLockdown() then return DeferRestore(tracker) end
-  tracker:SetCollapsed(true)
+--- @param module QuestFold_Module
+--- @return number? @nil when the module keeps Blizzard's height
+local function FoldedHeight(module)
+  if folded[ObjectiveTrackerFrame] then return HIDDEN_HEIGHT end
+  if folded[module] then return module.Header:GetHeight() + CLIP_HEIGHT end
 end
 
---- Folds every module to match All Objectives.
-local function SyncModules()
-  local collapsed = ObjectiveTrackerFrame:IsCollapsed()
-  ObjectiveTrackerFrame:ForEachModule(function(module)
-    module:SetCollapsed(collapsed)
-    SaveState(module)
-  end)
+--- Runs after UpdateHeight, which sets Blizzard's height.
+--- @param module QuestFold_Module
+local function Shrink(module)
+  if IsLocked(module) then return ApplyAfterCombat() end
+  module:SetClipsChildren(folded[ObjectiveTrackerFrame])
+  module.ContentsFrame:SetClipsChildren(folded[module])
+  local height = FoldedHeight(module)
+  if height then module:SetHeight(height) end
+end
+
+--- Frame calls only: writing tracker fields would taint it.
+--- @param module QuestFold_Module
+local function ApplyModule(module)
+  module:SetAlpha(folded[ObjectiveTrackerFrame] and 0 or 1)
+  module.Header:SetCollapsed(folded[module])
+  if FoldedHeight(module) then return Shrink(module) end
+  if IsLocked(module) then return ApplyAfterCombat() end
+  -- Blizzard's height; the hook then clears the clipping
+  if module:IsDisplayable() then module:UpdateHeight() end
+end
+
+local function ApplyAll()
+  ObjectiveTrackerFrame.Header:SetCollapsed(folded[ObjectiveTrackerFrame])
+  ObjectiveTrackerFrame:ForEachModule(ApplyModule)
 end
 
 --- @param tracker QuestFold_Tracker
-local function OnTrackerClick(tracker)
-  SaveState(tracker)
-  if tracker == ObjectiveTrackerFrame and IsAltKeyDown() then SyncModules() end
+--- @param isFolded boolean
+local function Remember(tracker, isFolded)
+  folded[tracker] = isFolded
+  db['global'].collapsed[tracker:GetName()] = isFolded
 end
 
---- Only user clicks are saved, so ForceExpand stays temporary.
+--- @param isFolded boolean
+local function RememberModules(isFolded)
+  ObjectiveTrackerFrame:ForEachModule(function(module) Remember(module, isFolded) end)
+end
+
 --- @param tracker QuestFold_Tracker
-local function HookClicks(tracker)
-  if hookedTrackers[tracker] then return end
-  hookedTrackers[tracker] = true
-  tracker.Header.MinimizeButton:HookScript('OnClick', function() OnTrackerClick(tracker) end)
+local function OnClick(tracker)
+  PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+  local isFolded = not folded[tracker]
+  Remember(tracker, isFolded)
+  if tracker == ObjectiveTrackerFrame and IsAltKeyDown() then RememberModules(isFolded) end
+  ApplyAll()
+end
+
+--- Blizzard asks for this to reveal new content; not saved.
+--- @param tracker QuestFold_Tracker
+local function Unfold(tracker)
+  if not folded[tracker] then return end
+  folded[tracker] = false
+  ApplyAll()
 end
 
 --- @param tracker QuestFold_Tracker
 local function MakeSticky(tracker)
-  HookClicks(tracker)
-  RestoreState(tracker)
+  folded[tracker] = db['global'].collapsed[tracker:GetName()] == true
+  -- Replaces Blizzard's toggle, so its own state stays expanded
+  tracker.Header.MinimizeButton:SetScript('OnClick', function() OnClick(tracker) end)
+  hooksecurefunc(tracker, 'ForceExpand', Unfold)
+end
+
+--- @param module QuestFold_Module
+local function OnModuleAdded(module)
+  if folded[module] ~= nil then return end
+  MakeSticky(module)
+  hooksecurefunc(module, 'UpdateHeight', Shrink)
+  ApplyModule(module)
 end
 
 local function OnPlayerLogin()
   InitDB()
   MakeSticky(ObjectiveTrackerFrame)
+  ObjectiveTrackerFrame:ForEachModule(OnModuleAdded)
   -- Modules attach after login, in ObjectiveTrackerManager:Init
-  hooksecurefunc(ObjectiveTrackerFrame, 'AddModule', function(_, module) MakeSticky(module) end)
+  hooksecurefunc(ObjectiveTrackerFrame, 'AddModule', function(_, module) OnModuleAdded(module) end)
+  ApplyAll()
 end
 
 local function OnRegenEnabled()
   eventFrame:UnregisterEvent('PLAYER_REGEN_ENABLED')
-  local trackers = pendingRestores
-  pendingRestores = {}
-  for tracker in pairs(trackers) do RestoreState(tracker) end
+  ApplyAll()
 end
 
 local handlers = {
@@ -98,7 +140,3 @@ local handlers = {
 
 eventFrame:SetScript('OnEvent', function(_, event) handlers[event]() end)
 eventFrame:RegisterEvent('PLAYER_LOGIN')
-
-C_Timer.After(1, function()
-  print(addonName, 'Loaded...')
-end)

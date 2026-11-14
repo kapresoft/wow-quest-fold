@@ -5,12 +5,25 @@ manual-changelog:
   markup-type: markdown
 enable-nolib-creation: no
 
+embedded-libraries:
+  - LibStub
+  - Ace3
+
 tools-used:
   - DevSuite
   - DebugChatFrame
   - Bugsack
   - Bug-Grabber
 
+# Use GitHub because svn repos are slower
+# basepath is ${package-as}
+externals:
+  # r1424-alpha (Release-r1403 + 21), needed for WoW Forever
+  ThirdParty/Libs/Ace3:
+    url: https://github.com/WoWUIDev/Ace3
+    commit: ac3d1225037e0dc74e025a72342c0f7824aae147
+
+# Ace3: keeps only LibStub, CallbackHandler-1.0 and AceDB-3.0
 ignore:
   - "*.md"
   - "*.yaml"
@@ -18,3 +31,21 @@ ignore:
   - "*.toml"
   - dev
   - doc
+  - ThirdParty/Libs/Ace3/Ace3.lua
+  - ThirdParty/Libs/Ace3/tests
+  - ThirdParty/Libs/Ace3/*.toc
+  - ThirdParty/Libs/Ace3/*.xml
+  - ThirdParty/Libs/Ace3/*.txt
+  - ThirdParty/Libs/Ace3/AceAddon-3.0
+  - ThirdParty/Libs/Ace3/AceBucket-3.0
+  - ThirdParty/Libs/Ace3/AceComm-3.0
+  - ThirdParty/Libs/Ace3/AceConfig-3.0
+  - ThirdParty/Libs/Ace3/AceConsole-3.0
+  - ThirdParty/Libs/Ace3/AceDBOptions-3.0
+  - ThirdParty/Libs/Ace3/AceEvent-3.0
+  - ThirdParty/Libs/Ace3/AceGUI-3.0
+  - ThirdParty/Libs/Ace3/AceHook-3.0
+  - ThirdParty/Libs/Ace3/AceLocale-3.0
+  - ThirdParty/Libs/Ace3/AceSerializer-3.0
+  - ThirdParty/Libs/Ace3/AceTab-3.0
+  - ThirdParty/Libs/Ace3/AceTimer-3.0
