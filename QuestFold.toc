@@ -7,7 +7,7 @@
 
 ## IconTexture: Interface/AddOns/QuestFold/Assets/QuestFold-Logo
 ## DefaultState: enabled
-## SavedVariables: QuestFoldDB
+## SavedVariables: QUEST_FOLD_DB
 
 ## Category-enUS: Quests
 ## Category-deDE: Quests

@@ -9,6 +9,12 @@ local addonName = ...
 --- @field IsCollapsed fun(self: QuestFold_Tracker): boolean
 --- @field SetCollapsed fun(self: QuestFold_Tracker, collapsed: boolean)
 
+--- Matches the TOC SavedVariables definition
+local DB_NAME = 'QUEST_FOLD_DB'
+
+--- @type QuestFold_DB
+local db
+
 local eventFrame = CreateFrame('Frame')
 
 --- @type table<QuestFold_Tracker, boolean>
@@ -18,13 +24,14 @@ local hookedTrackers = {}
 local pendingRestores = {}
 
 local function InitDB()
-  QuestFoldDB = QuestFoldDB or {}
-  QuestFoldDB.collapsed = QuestFoldDB.collapsed or {}
+  _G[DB_NAME] = _G[DB_NAME] or {}
+  db = _G[DB_NAME]
+  db.collapsed = db.collapsed or {}
 end
 
 --- @param tracker QuestFold_Tracker
 local function SaveState(tracker)
-  QuestFoldDB.collapsed[tracker:GetName()] = tracker:IsCollapsed()
+  db.collapsed[tracker:GetName()] = tracker:IsCollapsed()
 end
 
 --- @param tracker QuestFold_Tracker
@@ -35,7 +42,7 @@ end
 
 --- @param tracker QuestFold_Tracker
 local function RestoreState(tracker)
-  if not QuestFoldDB.collapsed[tracker:GetName()] then return end
+  if not db.collapsed[tracker:GetName()] then return end
   -- Tainted tracker updates can block secure item buttons
   if InCombatLockdown() then return DeferRestore(tracker) end
   tracker:SetCollapsed(true)
