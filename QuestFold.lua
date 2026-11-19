@@ -1,5 +1,7 @@
 local AceDB = LibStub('AceDB-3.0')
 
+local addonName = ...
+
 --- @class QuestFold_GlobalDB
 --- @field collapsed table<string, boolean> @Keyed by tracker frame name
 
@@ -86,6 +88,55 @@ local function RememberModules(isFolded)
   ObjectiveTrackerFrame:ForEachModule(function(module) Remember(module, isFolded) end)
 end
 
+--- The default anchor owner is UIParent, so hover is tracked here
+--- @type QuestFold_Tracker?
+local hovered
+
+local SEPARATOR_TEXTURE = 'Interface\\Common\\UI-TooltipDivider-Transparent'
+
+--- Blizzard's SocialUIUtil.AddSeparatorToTooltip settings
+local SEPARATOR_OPTIONS = {
+  height = 10,
+  anchor = Enum.TooltipTextureAnchor.All,
+  margin = { left = 0, right = 0, top = -2, bottom = -2 },
+}
+
+--- The texture anchors to a full-width (wrapped) blank line
+local function AddSeparator()
+  GameTooltip:AddLine(' ', 0, 0, 0, true)
+  GameTooltip:AddTexture(SEPARATOR_TEXTURE, SEPARATOR_OPTIONS)
+end
+
+--- @param tracker QuestFold_Tracker
+local function ShowTooltip(tracker)
+  hovered = tracker
+  GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
+  local isFolded = folded[tracker]
+  local action = isFolded and 'Expand' or 'Collapse'
+  GameTooltip:AddLine(addonName, 1, 1, 1)
+  GameTooltip:AddLine(' ')
+  if tracker == ObjectiveTrackerFrame then
+    GameTooltip:AddDoubleLine('Click', ('%s all objectives'):format(action), 1, 0.82, 0, 1, 1, 1)
+    GameTooltip:AddDoubleLine('Alt+Click', ('%s every tracker too'):format(action), 1, 0.82, 0, 1, 1, 1)
+  else
+    GameTooltip:AddDoubleLine('Click', ('%s this tracker'):format(action), 1, 0.82, 0, 1, 1, 1)
+  end
+  AddSeparator()
+  local result = isFolded and 'Stays expanded after reload' or 'Stays collapsed after reload'
+  GameTooltip:AddLine(result, 0.98, 1.00, 0.73, true)
+  GameTooltip:Show()
+end
+
+local function HideTooltip()
+  hovered = nil
+  GameTooltip:Hide()
+end
+
+--- @param tracker QuestFold_Tracker
+local function RefreshTooltip(tracker)
+  if hovered == tracker then ShowTooltip(tracker) end
+end
+
 --- @param tracker QuestFold_Tracker
 local function OnClick(tracker)
   PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
@@ -93,6 +144,7 @@ local function OnClick(tracker)
   Remember(tracker, isFolded)
   if tracker == ObjectiveTrackerFrame and IsAltKeyDown() then RememberModules(isFolded) end
   ApplyAll()
+  RefreshTooltip(tracker)
 end
 
 --- Blizzard asks for this to reveal new content; not saved.
@@ -107,7 +159,10 @@ end
 local function MakeSticky(tracker)
   folded[tracker] = db['global'].collapsed[tracker:GetName()] == true
   -- Replaces Blizzard's toggle, so its own state stays expanded
-  tracker.Header.MinimizeButton:SetScript('OnClick', function() OnClick(tracker) end)
+  local button = tracker.Header.MinimizeButton
+  button:SetScript('OnClick', function() OnClick(tracker) end)
+  button:SetScript('OnEnter', function() ShowTooltip(tracker) end)
+  button:SetScript('OnLeave', HideTooltip)
   hooksecurefunc(tracker, 'ForceExpand', Unfold)
 end
 
