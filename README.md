@@ -4,15 +4,19 @@
 
 > **Fold it. Forget it.**
 
-A lightweight World of Warcraft addon that makes collapsed quest log headers sticky.
+A lightweight World of Warcraft addon that makes collapsed objective tracker headers sticky.
 
 ## Why
 
-You collapse the zones you don't care about right now, and the quest log keeps opening them back up. Quest Fold remembers what you folded, so your quest log stays the way you left it.
+You collapse the trackers you don't care about right now, and the game keeps opening them back up. Quest Fold remembers what you folded, so your objective tracker stays the way you left it.
 
 ## Features
 
-- Collapsed quest log headers stay collapsed.
+- Collapsed objective tracker headers stay collapsed, even after a reload: All Objectives and each tracker (quests, campaign, world quests, achievements, ...).
+- Alt+Click the All Objectives button to collapse or expand every tracker at once.
+- Tooltips on the collapse buttons show what a click does.
+- A short help tour shows new users how it works, once.
+- Available in English, German, French, Spanish, Italian, Portuguese (Brazil), Russian, Korean and Chinese (Simplified and Traditional).
 - Works out of the box: no setup, no options to configure.
 - Lightweight: does one thing and stays out of your way.
 
@@ -21,7 +25,7 @@ You collapse the zones you don't care about right now, and the quest log keeps o
 - Retail
 - WoW Forever
 
-Classic flavors aren't supported: their quest log works differently.
+Classic flavors aren't supported: their objective tracker works differently.
 
 ## Feedback
 
