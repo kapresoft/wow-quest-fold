@@ -8,6 +8,7 @@
 ## IconTexture: Interface/AddOns/QuestFold/Assets/QuestFold-Logo
 ## DefaultState: enabled
 ## SavedVariables: QUEST_FOLD_DB
+## OptionalDeps: LibHelpTour
 
 ## Category-enUS: Quests
 ## Category-deDE: Quests
@@ -37,3 +38,6 @@
 
 ThirdParty\ThirdParty.xml
 QuestFold.lua
+#@do-not-package@
+Libs\Developer\_Developer.xml
+#@end-do-not-package@
