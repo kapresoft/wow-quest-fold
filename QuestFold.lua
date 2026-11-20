@@ -2,6 +2,7 @@ local AceDB = LibStub('AceDB-3.0')
 local LibHelpTour = LibStub('LibHelpTour-1.0')
 
 local addonName = ...
+local L = LibStub('AceLocale-3.0'):GetLocale(addonName)
 
 --- @class QuestFold_GlobalDB
 --- @field collapsed table<string, boolean>         @Keyed by tracker frame name
@@ -115,23 +116,30 @@ local function AddSeparator()
   GameTooltip:AddTexture(SEPARATOR_TEXTURE, SEPARATOR_OPTIONS)
 end
 
+--- @param click string
+--- @param action string
+local function AddClickLine(click, action)
+  GameTooltip:AddDoubleLine(click, action, 1, 0.82, 0, 1, 1, 1)
+end
+
 --- @param tracker QuestFold_Tracker
 local function ShowTooltip(tracker)
   hovered = tracker
   GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
   local isFolded = folded[tracker]
-  local action = isFolded and 'Expand' or 'Collapse'
   GameTooltip:AddLine(addonName, 1, 1, 1)
   GameTooltip:AddLine(' ')
   if tracker == ObjectiveTrackerFrame then
-    GameTooltip:AddDoubleLine('Click', ('%s all objectives'):format(action), 1, 0.82, 0, 1, 1, 1)
-    GameTooltip:AddDoubleLine('Alt+Click', ('%s every tracker too'):format(action), 1, 0.82, 0, 1, 1, 1)
+    local all = isFolded and 'Expand all objectives' or 'Collapse all objectives'
+    local every = isFolded and 'Expand every tracker too' or 'Collapse every tracker too'
+    AddClickLine(L['Click'], L[all])
+    AddClickLine(L['Alt+Click'], L[every])
   else
-    GameTooltip:AddDoubleLine('Click', ('%s this tracker'):format(action), 1, 0.82, 0, 1, 1, 1)
+    AddClickLine(L['Click'], L[isFolded and 'Expand this tracker' or 'Collapse this tracker'])
   end
   AddSeparator()
   local result = isFolded and 'Stays expanded after reload' or 'Stays collapsed after reload'
-  GameTooltip:AddLine(result, 0.98, 1.00, 0.73, true)
+  GameTooltip:AddLine(L[result], 0.98, 1.00, 0.73, true)
   GameTooltip:Show()
 end
 
@@ -170,13 +178,12 @@ local TOURS = {
     steps = {
       {
         key = STEP_ALL_OBJECTIVES,
-        textKey = 'Collapsed trackers stay collapsed, even after reload. '
-          .. 'Alt+Click here to collapse or expand every tracker.',
+        textKey = 'AllObjectives::HelpTip',
         anchor = function(container) return container.Header.MinimizeButton end,
       },
       {
         key = STEP_TRACKER,
-        textKey = 'Each tracker remembers its own collapsed state too.',
+        textKey = 'Tracker::HelpTip',
         anchor = FirstTrackerButton,
       },
     },
@@ -188,7 +195,7 @@ local helpTour = LibHelpTour:New({
   dismissed = function() return db['global'].helpTipsDismissed end,
   getBaseline = function() return db['global'].tourBaseline end,
   setBaseline = function(baseline) db['global'].tourBaseline = baseline end,
-  text = function(textKey) return textKey end,
+  text = function(textKey) return L[textKey] end,
   tipParent = function() return UIParent end,
   tipStrata = 'FULLSCREEN_DIALOG',
 })
