@@ -7,9 +7,9 @@ local o = {}; qf_dev = o
 --- qf_dev:ResetHelpTour()
 --- ```
 function o:ResetHelpTour()
-  local global = QUEST_FOLD_DB['global']
-  global.helpTipsDismissed = nil
-  global.tourBaseline = nil
+  local globalDb = QUEST_FOLD_DB['global']
+  globalDb.helpTipsDismissed = nil
+  globalDb.tourBaseline = nil
   ReloadUI()
 end
 
@@ -29,13 +29,13 @@ end
 --- qf_dev:TourState()
 --- ```
 function o:TourState()
-  local global = QUEST_FOLD_DB['global']
+  local globalDb = QUEST_FOLD_DB['global']
   local tracker = ObjectiveTrackerFrame
   local button = tracker.Header.MinimizeButton
   print('tracker shown/visible:', tracker:IsShown(), tracker:IsVisible())
   print('button visible:', button:IsVisible(), 'center:', button:GetCenter())
-  print('baseline:', global.tourBaseline)
-  for key in pairs(global.helpTipsDismissed or {}) do print('seen:', key) end
+  print('baseline:', globalDb.tourBaseline)
+  for key in pairs(globalDb.helpTipsDismissed or {}) do print('seen:', key) end
   tracker:ForEachModule(function(module)
     if module:IsVisible() then print('visible module:', module:GetName()) end
   end)

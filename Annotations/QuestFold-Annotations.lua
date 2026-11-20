@@ -1,3 +1,4 @@
+--- @meta _
 -- Type definitions for EmmyLua; not loaded by the TOC.
 
 --[[-----------------------------------------------------------------------------
@@ -28,3 +29,6 @@ Globals
 --- The "All Objectives" container
 --- @type QuestFold_Container
 ObjectiveTrackerFrame = {}
+
+--- @type QuestFold_DB
+QUEST_FOLD_DB = {}

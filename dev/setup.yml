@@ -20,7 +20,7 @@ externals:
     url: https://github.com/kapresoft/wow-addon-LibHelpTour
     tag: latest
 
-# Ace3: keeps only LibStub, CallbackHandler-1.0 and AceDB-3.0
+# Ace3: keeps only LibStub, CallbackHandler-1.0, AceDB-3.0 and AceLocale-3.0
 ignore:
   - "*.md"
   - "*.yaml"
@@ -43,7 +43,6 @@ ignore:
   - ThirdParty-Libs/Ace3/AceEvent-3.0
   - ThirdParty-Libs/Ace3/AceGUI-3.0
   - ThirdParty-Libs/Ace3/AceHook-3.0
-  - ThirdParty-Libs/Ace3/AceLocale-3.0
   - ThirdParty-Libs/Ace3/AceSerializer-3.0
   - ThirdParty-Libs/Ace3/AceTab-3.0
   - ThirdParty-Libs/Ace3/AceTimer-3.0
