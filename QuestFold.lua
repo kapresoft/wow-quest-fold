@@ -1,9 +1,12 @@
 local AceDB = LibStub('AceDB-3.0')
+local LibHelpTour = LibStub('LibHelpTour-1.0')
 
 local addonName = ...
 
 --- @class QuestFold_GlobalDB
---- @field collapsed table<string, boolean> @Keyed by tracker frame name
+--- @field collapsed table<string, boolean>         @Keyed by tracker frame name
+--- @field helpTipsDismissed table<string, boolean> @Help tour step keys seen
+--- @field tourBaseline number?                     @LibHelpTour feature-tour baseline
 
 --- @class QuestFold_DB
 --- @field global QuestFold_GlobalDB @Account-wide
@@ -12,7 +15,12 @@ local addonName = ...
 local DB_NAME = 'QUEST_FOLD_DB'
 
 --- @type QuestFold_DB
-local DB_DEFAULTS = { ['global'] = { collapsed = {} } }
+local DB_DEFAULTS = {
+  ['global'] = {
+    collapsed = { ['*'] = false },
+    helpTipsDismissed = {},
+  },
+}
 
 --- Clipping needs a rect, so a hidden module keeps this much
 local HIDDEN_HEIGHT = 1
@@ -137,6 +145,85 @@ local function RefreshTooltip(tracker)
   if hovered == tracker then ShowTooltip(tracker) end
 end
 
+local TOUR_TARGET = 'ObjectiveTracker'
+
+-- Saved as seen in helpTipsDismissed: never rename a step key
+local STEP_ALL_OBJECTIVES = 'AllObjectivesButton'
+local STEP_TRACKER = 'TrackerButton'
+
+--- @param container QuestFold_Container
+--- @return Button? @nil while all objectives are folded or no tracker shows
+local function FirstTrackerButton(container)
+  if folded[container] then return nil end
+  local button
+  container:ForEachModule(function(module)
+    if not button and module:IsVisible() then button = module.Header.MinimizeButton end
+  end)
+  return button
+end
+
+--- @type LibHelpTour_Tour[]
+local TOURS = {
+  {
+    id = 'welcome',
+    targetId = TOUR_TARGET,
+    steps = {
+      {
+        key = STEP_ALL_OBJECTIVES,
+        textKey = 'Collapsed trackers stay collapsed, even after reload. '
+          .. 'Alt+Click here to collapse or expand every tracker.',
+        anchor = function(container) return container.Header.MinimizeButton end,
+      },
+      {
+        key = STEP_TRACKER,
+        textKey = 'Each tracker remembers its own collapsed state too.',
+        anchor = FirstTrackerButton,
+      },
+    },
+  },
+}
+
+local helpTour = LibHelpTour:New({
+  tours = TOURS,
+  dismissed = function() return db['global'].helpTipsDismissed end,
+  getBaseline = function() return db['global'].tourBaseline end,
+  setBaseline = function(baseline) db['global'].tourBaseline = baseline end,
+  text = function(textKey) return textKey end,
+  tipParent = function() return UIParent end,
+  tipStrata = 'FULLSCREEN_DIALOG',
+})
+
+local function ShowHelpTour()
+  helpTour:OnTargetShown(TOUR_TARGET, ObjectiveTrackerFrame)
+end
+
+--- @return boolean
+local function HasUnseenStep()
+  local dismissed = db['global'].helpTipsDismissed
+  for _, tour in ipairs(TOURS) do
+    for _, step in ipairs(tour.steps) do
+      if not dismissed[step.key] then return true end
+    end
+  end
+  return false
+end
+
+--- Login runs before buttons show; a step's tracker can hide
+local function ShowPendingHelpTour()
+  if not HasUnseenStep() then return end
+  ShowHelpTour()
+end
+
+local function HideHelpTour()
+  helpTour:OnTargetHidden(ObjectiveTrackerFrame)
+end
+
+--- @param tracker QuestFold_Tracker
+local function CompleteHelpStep(tracker)
+  helpTour:CompleteStep(tracker == ObjectiveTrackerFrame and STEP_ALL_OBJECTIVES or STEP_TRACKER)
+  ShowHelpTour()
+end
+
 --- @param tracker QuestFold_Tracker
 local function OnClick(tracker)
   PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
@@ -145,6 +232,7 @@ local function OnClick(tracker)
   if tracker == ObjectiveTrackerFrame and IsAltKeyDown() then RememberModules(isFolded) end
   ApplyAll()
   RefreshTooltip(tracker)
+  CompleteHelpStep(tracker)
 end
 
 --- Blizzard asks for this to reveal new content; not saved.
@@ -171,6 +259,7 @@ local function OnModuleAdded(module)
   if folded[module] ~= nil then return end
   MakeSticky(module)
   hooksecurefunc(module, 'UpdateHeight', Shrink)
+  hooksecurefunc(module, 'UpdateHeight', ShowPendingHelpTour)
   ApplyModule(module)
 end
 
@@ -181,6 +270,9 @@ local function OnPlayerLogin()
   -- Modules attach after login, in ObjectiveTrackerManager:Init
   hooksecurefunc(ObjectiveTrackerFrame, 'AddModule', function(_, module) OnModuleAdded(module) end)
   ApplyAll()
+  ObjectiveTrackerFrame:HookScript('OnShow', ShowHelpTour)
+  ObjectiveTrackerFrame:HookScript('OnHide', HideHelpTour)
+  ShowHelpTour()
 end
 
 local function OnRegenEnabled()

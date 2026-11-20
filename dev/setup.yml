@@ -16,6 +16,9 @@ externals:
   ThirdParty-Libs/Ace3:
     url: https://github.com/WoWUIDev/Ace3
     commit: ac3d1225037e0dc74e025a72342c0f7824aae147
+  ThirdParty-Libs/LibHelpTour:
+    url: https://github.com/kapresoft/wow-addon-LibHelpTour
+    tag: latest
 
 # Ace3: keeps only LibStub, CallbackHandler-1.0 and AceDB-3.0
 ignore:
@@ -44,6 +47,9 @@ ignore:
   - ThirdParty-Libs/Ace3/AceSerializer-3.0
   - ThirdParty-Libs/Ace3/AceTab-3.0
   - ThirdParty-Libs/Ace3/AceTimer-3.0
+  - ThirdParty-Libs/LibHelpTour/dev
+  - ThirdParty-Libs/LibHelpTour/ThirdParty
+  - ThirdParty-Libs/LibHelpTour/LICENSE
 
 # Base path is .release/
 move-folders:
